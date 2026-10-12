@@ -97,7 +97,7 @@
   <div class="overlay hidden" id="syncOverlay" role="dialog" aria-modal="true" aria-labelledby="syncHeading">
     <div class="modal sync-modal">
       <div class="modal-head"><h2 id="syncHeading">☁ SmartPlayer 클라우드 동기화</h2><button id="closeSync" class="iconbtn" type="button" aria-label="닫기">✕</button></div>
-      <p class="sync-help">기존 재생 기능은 그대로 사용합니다. 동기화는 선택 사항입니다. <b>Supabase 프로젝트 URL과 publishable 키</b>만 입력하세요. 비밀키(service_role / secret)는 절대 입력하지 마세요.</p>
+      <p class="sync-help">기존 재생 기능은 그대로 사용합니다. 동기화는 선택 사항입니다. <b>연결 정보는 이미 입력되어 있습니다. <b>이메일과 비밀번호</b>로 개인 계정을 생성하거나 로그인하세요. 비밀키(service_role / secret)는 절대 입력하지 마세요.</p>
       <div class="field"><label for="syncUrl">Supabase Project URL</label><input id="syncUrl" type="url" placeholder="https://xxxx.supabase.co" autocomplete="off" /></div>
       <div class="field"><label for="syncKey">Supabase publishable key (또는 legacy anon key)</label><input id="syncKey" type="text" placeholder="sb_publishable_..." autocomplete="off" spellcheck="false" /></div>
       <div class="sync-auth-row"><button class="btn" id="saveSyncConfig" type="button">연결 정보 저장</button><button class="btn ghost" id="forgetSyncConfig" type="button">연결 정보 지우기</button></div>
@@ -106,7 +106,7 @@
         <div class="field"><label for="syncPassword">비밀번호 (8자 이상)</label><input id="syncPassword" type="password" autocomplete="current-password" placeholder="Supabase 계정 비밀번호" /></div>
         <div class="sync-auth-row"><button class="btn primary" type="button" id="syncLogin">로그인</button><button class="btn" type="button" id="syncSignUp">처음 사용: 회원가입</button><button class="btn ghost" type="button" id="syncLogout">로그아웃</button></div>
       </div>
-      <div id="syncInfo" class="sync-info" role="status" aria-live="polite">로그인하지 않았습니다. 무료 Supabase 프로젝트에서 테이블을 만든 다음 연결할 수 있습니다.</div>
+      <div id="syncInfo" class="sync-info" role="status" aria-live="polite">계정으로 로그인하면 내 음악 목록을 PC와 모바일에서 동기화할 수 있습니다.</div>
       <div class="sync-auth-row"><button class="btn" id="syncRun" type="button">↻ 지금 동기화</button><button class="btn" id="syncBackup" type="button">↥ 먼저 백업 다운로드</button></div>
       <p class="sync-help" style="margin-top:16px">음악 등록·수정·삭제 시 자동 동기화하고, 화면을 다시 열거나 일정 시간이 지나면 다른 기기의 변경 사항을 가져옵니다. 충돌 시 수정 시간이 최신인 데이터를 우선하며, 실수에 대비해 JSON 백업을 보관하세요.</p>
     </div>
@@ -160,13 +160,16 @@
     // ----- OPTIONAL SUPABASE CLOUD SYNC (v0.3 preview) -----
     let cloudClient=null, cloudUser=null, cloudEnabled=false, cloudBusy=false, cloudTimer=null;
     let cloudChanges=0, cloudLastSynced='', cloudPollTime=0;
-    const syncConfig=()=>{try{return JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY)||'null')}catch{return null}};
+    // Public Supabase project identifier + publishable key (safe to expose in client apps).
+    // RLS protects user data; no secret/service_role key is included.
+    const DEFAULT_CLOUD_CONFIG = {url:"https://argqtzatzkirhartmiqn.supabase.co",key:"sb_publishable_dCAiLEV4qRF4BT6BjNXKRw_aGdzbrn8"};
+    const syncConfig=()=>{try{return JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY)||'null')||DEFAULT_CLOUD_CONFIG}catch{return DEFAULT_CLOUD_CONFIG}};
     const syncMessage=(msg)=>{$('#syncInfo').textContent=msg;};
     function syncStatus(msg){$('#syncStatus').textContent=msg;}
     function openSync(){$('#syncOverlay').classList.remove('hidden');const c=syncConfig();if(c){$('#syncUrl').value=c.url||'';$('#syncKey').value=c.key||'';}if(cloudUser){syncMessage(`로그인됨: ${cloudUser.email||cloudUser.id}\n${cloudLastSynced?`최근 동기화: ${cloudLastSynced}`:'동기화 대기 중'}`);}$('#syncEmail').focus();}
     function closeSync(){$('#syncOverlay').classList.add('hidden');}
     function validCloudConfig(url,key){const u=new URL(url);if(u.protocol!=='https:'||!u.hostname.endsWith('.supabase.co'))throw Error('Supabase 프로젝트의 https://...supabase.co 주소를 입력하세요.');if(!/^(sb_publishable_[\w-]+|eyJ[\w.-]+)$/.test(key))throw Error('publishable 키 또는 anon 키를 확인하세요. secret/service_role 키는 사용할 수 없습니다.');return {url:u.origin,key};}
-    async function makeCloudClient(){const c=syncConfig();if(!c)throw Error('먼저 Supabase 연결 정보를 저장해 주세요.');if(!window.supabase?.createClient)throw Error('Supabase 라이브러리를 불러오지 못했습니다. 인터넷 연결이나 콘텐츠 차단 설정을 확인하세요.');cloudClient=window.supabase.createClient(c.url,c.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});return cloudClient;}
+    async function makeCloudClient(){const c=syncConfig();if(!c)throw Error('클라우드 설정이 없습니다.');if(!window.supabase?.createClient)throw Error('Supabase 라이브러리를 불러오지 못했습니다. 인터넷 연결이나 콘텐츠 차단 설정을 확인하세요.');cloudClient=window.supabase.createClient(c.url,c.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});return cloudClient;}
     function normalizeSnapshot(x){const songs=(Array.isArray(x?.songs)?x.songs:[]).filter(s=>s&&typeof s.id==='string'&&/^[\w-]{11}$/.test(s.youtubeId||'')&&typeof s.title==='string').map(s=>({...s,genres:Array.isArray(s.genres)?s.genres:[],moods:Array.isArray(s.moods)?s.moods:[]}));const tombstones=(Array.isArray(x?.tombstones)?x.tombstones:[]).filter(t=>typeof t?.id==='string'&&Number.isFinite(t.deletedAt));return {songs,tombstones};}
     function localSnapshot(){return {songs:state.songs.map(s=>({...s,updatedAt:Number(s.updatedAt)||Number(s.addedAt)||0})),tombstones:state.tombstones.slice()};}
     function mergeSnapshots(local,remote){const values=new Map();function accept(key,kind,ts,data,priority){const old=values.get(key);if(!old||ts>old.ts||(ts===old.ts&&priority>old.priority))values.set(key,{kind,ts,data,priority});}
