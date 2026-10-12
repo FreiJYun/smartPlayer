@@ -39,6 +39,18 @@
     .video-frame{min-height:210px}
     .video-frame #yt-player{min-height:210px}
     @media(max-width:640px){.cover-stage{min-height:235px;height:270px}.cover-stage-info{padding:17px}.video-frame{min-height:210px}}
+    /* v0.4 mini-player: keep the full-size cover, resize only the visible YouTube embed. */
+    .mini-playback-row{display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);gap:16px;align-items:start}
+    .mini-playback-row .video-frame{width:100%;height:210px;min-height:210px;max-height:none;aspect-ratio:auto;flex:none}
+    .mini-playback-row .video-frame #yt-player{width:100%;height:100%;min-height:210px}
+    .mini-playback-details{display:flex;flex-direction:column;gap:12px;min-width:0;overflow-wrap:anywhere}
+    .mini-playback-details .now{margin-top:0;min-width:0}
+    .mini-playback-details .little-note{margin:0;line-height:1.7}
+    @media(max-width:650px){
+      .mini-playback-row{grid-template-columns:minmax(0,1fr);gap:14px}
+      .mini-playback-row .video-frame{width:min(100%,340px)}
+      .mini-playback-details .now{margin-top:0}
+    }
     /* Optional sync dialog; the established player layout remains unchanged. */
     .sync-status{display:inline-block;font-size:12px;color:#abc5e8;margin:0 0 0 4px}
     .sync-help{font-size:12px;color:#aabbd4;line-height:1.7;margin:0 0 12px}
@@ -83,10 +95,14 @@
               <div class="cover-stage-artist" id="stageArtist">음악별 등록 사진이 이곳의 배경이 됩니다.</div>
             </div>
           </div>
-          <div class="video-caption"><span>공식 YouTube 플레이어</span><span>재생 화면은 항상 표시됩니다</span></div>
-          <div class="video-frame"><div id="yt-player"></div><div class="video-placeholder" id="videoPlaceholder"><div><span class="youtube-mark">▶</span>음악을 등록하고 선택하면<br>YouTube 영상이 여기에 나타납니다.</div></div></div>
-          <div class="now"><div id="artistPhoto" class="avatar" aria-label="아티스트 사진">♫</div><div style="min-width:0"><div id="nowTitle" class="now-title">선택한 음악 없음</div><div id="nowArtist" class="now-artist">아티스트</div></div></div>
-          <p class="little-note">YouTube 공식 임베드 재생기를 사용합니다. 영상은 화면에 표시되어야 하며 Premium의 백그라운드 재생 혜택이 이 웹앱에 그대로 적용되는 것은 아닙니다.</p>
+          <div class="video-caption"><span>공식 YouTube 플레이어 · 소형 창</span><span>영상은 항상 표시됩니다</span></div>
+          <div class="mini-playback-row">
+            <div class="video-frame"><div id="yt-player"></div><div class="video-placeholder" id="videoPlaceholder"><div><span class="youtube-mark">▶</span>음악을 선택하면<br>YouTube 영상이 나타납니다.</div></div></div>
+            <div class="mini-playback-details">
+              <div class="now"><div id="artistPhoto" class="avatar" aria-label="아티스트 사진">♫</div><div style="min-width:0"><div id="nowTitle" class="now-title">선택한 음악 없음</div><div id="nowArtist" class="now-artist">아티스트</div></div></div>
+              <p class="little-note">공식 YouTube 임베드 재생기를 사용합니다. Premium의 백그라운드 재생 혜택은 이 웹앱에 그대로 적용되지 않을 수 있습니다.</p>
+            </div>
+          </div>
         </div>
         <div class="panel">
           <div class="panel-head"><h2>≡ 가사</h2><button id="toggleLyrics" class="btn ghost" aria-expanded="true">접기</button></div>
