@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0d111b" />
+  <!-- YouTube IFrame Player 오류 153 방지: 출처 식별을 위해 Referer 허용 -->
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <title>SmartPlayer v0.4 · 나만의 음악 데이터베이스</title>
+  <link rel="manifest" href="./SmartPlayer_v0.4_manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="./SmartPlayer_icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <style>
+    :root{color-scheme:dark;--bg:#0c1018;--card:#171d29;--card2:#1c2432;--line:#303849;--fg:#eef3fd;--muted:#99a6bc;--accent:#8cb9ff;--accent2:#c9daff;--danger:#ff9eaa;--radius:17px}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;color:var(--fg);background:radial-gradient(ellipse at 12% -18%,#223958 0,transparent 36%),var(--bg)}
+    button,input,textarea,select{font:inherit}button{cursor:pointer;color:inherit}button:disabled{opacity:.4;cursor:not-allowed}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+    .app{max-width:1580px;margin:0 auto;padding:23px 25px 140px}.header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:27px}.brand{display:flex;align-items:center;gap:12px}.brandmark{width:45px;height:45px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(145deg,#4174b8,#1c3b64);font-size:25px;box-shadow:0 8px 26px #1c4d9460}.brand strong{font-size:23px;letter-spacing:-.5px}.brand small{display:block;color:var(--muted);margin-top:3px;font-size:12px}.header-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{border:1px solid var(--line);background:#242c3b;padding:10px 14px;border-radius:11px;font-size:13px;font-weight:650;transition:background .15s,border .15s}.btn:hover{background:#323d51}.btn.primary{background:#a0c5ff;color:#0b172b;border-color:#a0c5ff}.btn.primary:hover{background:#c3d9ff}.btn.ghost{background:transparent}.btn.danger{color:var(--danger)}
+    .heading{margin:0 0 4px;font-size:23px;letter-spacing:-.6px}.sub{margin:0 0 22px;color:var(--muted);font-size:13px}.layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(335px,.85fr);gap:22px;align-items:start}.left,.right{min-width:0;display:flex;flex-direction:column;gap:16px}
+    .panel{background:linear-gradient(160deg,#1a2332,#151b26 76%);border:1px solid #2a3547;border-radius:var(--radius);padding:18px;box-shadow:0 10px 32px #0000001b}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}.panel-head h2{font-size:15px;margin:0;letter-spacing:-.1px}.panel-head small{color:var(--muted)}
+    .searchbar{width:100%;border:1px solid #394456;color:var(--fg);background:#111824;border-radius:11px;padding:12px 13px;outline:none}.searchbar::placeholder{color:#718098}.filter-row{margin-top:14px}.filter-label{color:#aab9cf;font-size:12px;font-weight:650;display:flex;justify-content:space-between;gap:8px;margin-bottom:8px}.chips{display:flex;flex-wrap:wrap;gap:7px}.chip{border:1px solid #384457;background:#222c3c;color:#bac6d8;border-radius:99px;padding:7px 11px;font-size:12px}.chip[aria-pressed=true]{background:#3b5b81;border-color:#709bcf;color:#fff}.filter-note{color:#8393aa;font-size:11px;margin:13px 0 0;line-height:1.6}
+    .tracklist{display:flex;flex-direction:column;gap:8px}.track{display:flex;align-items:center;gap:11px;padding:10px;border-radius:13px;border:1px solid #273245;background:#1b2330;min-width:0}.track.current{border-color:#6387b6;background:#24334a}.track-main{display:flex;align-items:center;gap:11px;text-align:left;background:none;border:none;min-width:0;flex:1;padding:0}.cover{width:54px;height:54px;flex:0 0 54px;border-radius:10px;background:#303e52;object-fit:cover}.cover-fallback{display:grid;place-items:center;font-size:22px;color:#91a6c4}.track-desc{min-width:0}.track-name{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.track-artist{color:#acb8ca;font-size:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tags{font-size:11px;color:#8598b4;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.track-tools{display:flex;gap:3px;flex-shrink:0}.iconbtn{height:34px;width:34px;display:grid;place-items:center;border:0;border-radius:10px;background:transparent;color:#bacce5}.iconbtn:hover{background:#35445a}.iconbtn.active{color:#b5d6ff;background:#354e70}.empty{padding:37px 20px;text-align:center;border:1px dashed #3d4960;border-radius:12px;color:#a0afc7;font-size:13px;line-height:1.75}.empty .big{font-size:30px;display:block;margin-bottom:7px}.list-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:15px;color:#95a6bf;font-size:12px}
+    .video-frame{background:#06090f;border-radius:13px;overflow:hidden;aspect-ratio:16/9;min-height:210px;display:grid;place-items:center;position:relative}.video-frame #yt-player{width:100%;height:100%;min-height:210px}.video-placeholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:22px;background:radial-gradient(circle at center,#293b55,#0d1420 75%);font-size:13px;color:#b2c2da;line-height:1.7}.video-placeholder .youtube-mark{display:block;font-size:36px;margin-bottom:12px}.now{display:flex;align-items:center;gap:12px;margin-top:14px}.avatar{width:49px;height:49px;border-radius:100%;object-fit:cover;background:#2c3b50;display:grid;place-items:center;font-size:21px}.now-title{font-size:16px;font-weight:750;margin-bottom:4px}.now-artist{font-size:12px;color:var(--muted)}.little-note{font-size:11px;color:#8395ac;margin:12px 0 0;line-height:1.6}
+    .lyrics{max-height:350px;min-height:145px;overflow:auto;white-space:pre-wrap;line-height:2.2;font-size:14px;color:#becade;scroll-behavior:smooth}.lyric-line{padding:4px 7px;border-radius:8px;color:#889bb3;transition:.2s}.lyric-line.active{color:#fff;font-weight:800;background:#314665}.lyrics-placeholder{color:#7e90a9;font-size:13px;line-height:1.8}.hidden{display:none!important}
+    .bottom-player{position:fixed;bottom:0;left:0;right:0;z-index:20;background:#121a27f5;border-top:1px solid #3a4960;backdrop-filter:blur(16px)}.bottom-inner{max-width:1580px;margin:auto;padding:11px 25px 15px;display:grid;grid-template-columns:minmax(200px,1fr) minmax(300px,1.4fr) minmax(100px,1fr);gap:18px;align-items:center}.bottom-song{display:flex;align-items:center;gap:10px;min-width:0}.bottom-song img,.bottom-song .mini-fallback{width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0}.mini-fallback{background:#37465c;display:grid;place-items:center}.bottom-info{min-width:0}.bottom-title{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bottom-artist{font-size:11px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.transport{min-width:0}.transport-buttons{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px}.transport .iconbtn{font-size:17px}.transport .main-play{background:#c7ddff;color:#152239;border-radius:100%;width:38px;height:38px;font-size:17px;font-weight:800}.transport .main-play:hover{background:#fff}.timeline{display:flex;gap:9px;align-items:center;color:#95a8c1;font-size:10px;font-variant-numeric:tabular-nums}.timeline input{flex:1;min-width:0;accent-color:#a5c9ff;cursor:pointer}.volume{display:flex;align-items:center;justify-content:end;gap:9px;font-size:12px;color:#a6b7d0}.volume input{width:90px;accent-color:#a5c9ff}.repeat-label{font-size:9px;position:absolute;transform:translate(6px,12px)}
+    .overlay{position:fixed;inset:0;z-index:50;background:#05080bd0;display:flex;align-items:center;justify-content:center;padding:14px}.modal{width:min(670px,100%);max-height:min(90vh,900px);overflow-y:auto;border:1px solid #4b5b71;border-radius:19px;background:#192232;box-shadow:0 30px 95px #000b;padding:23px}.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:17px}.modal-head h2{margin:0;font-size:20px}.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{display:flex;flex-direction:column;gap:6px;min-width:0}.field.wide{grid-column:1/-1}.field label{font-size:12px;color:#bbc9df;font-weight:700}.field input,.field textarea{border-radius:10px;padding:11px 12px;border:1px solid #3b4c62;background:#0f1723;color:#edf3ff;width:100%}.field textarea{resize:vertical;min-height:100px}.help{font-size:11px;color:#879ab5;line-height:1.5}.modal-footer{display:flex;justify-content:space-between;gap:8px;margin-top:19px}.file-input{font-size:12px;max-width:100%}.file-input::file-selector-button{background:#34455f;color:#e7efff;padding:7px;border:0;border-radius:7px;margin-right:8px}.toast{position:fixed;bottom:115px;right:20px;z-index:80;background:#293b55;color:#eaf3ff;padding:13px 17px;border:1px solid #6484ae;border-radius:12px;max-width:min(470px,90vw);font-size:13px;box-shadow:0 10px 36px #0008}.stats{color:#94a6c0;font-size:12px}
+    @media(max-width:1000px){.layout{grid-template-columns:1fr}.right{order:-1}.video-frame{max-height:360px}.bottom-inner{grid-template-columns:1fr 1.3fr}.volume{display:none}}
+    @media(max-width:640px){.app{padding:16px 13px 159px}.brand strong{font-size:18px}.brandmark{width:39px;height:39px}.brand small{font-size:10px}.header{align-items:flex-start}.header-actions{justify-content:flex-end}.btn{font-size:12px;padding:9px 10px}.panel{padding:13px}.video-frame{min-height:200px}.modal{padding:17px}.modal-grid{grid-template-columns:1fr}.field.wide{grid-column:auto}.bottom-inner{padding:10px 12px 13px;grid-template-columns:1fr;gap:8px}.bottom-song{display:none}.transport-buttons{margin-bottom:5px}.toast{bottom:115px;right:10px}.heading{font-size:21px}}
+    /* v0.4: existing cover image is the main visual; official YouTube remains visible. */
+    .cover-stage{isolation:isolate;position:relative;overflow:hidden;display:flex;align-items:flex-end;border-radius:14px;min-height:240px;height:clamp(250px,33vw,410px);background:linear-gradient(145deg,#24446b,#101826 70%);border:1px solid #394d67;margin-bottom:13px}
+    .cover-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
+    .cover-stage::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;background:linear-gradient(180deg,transparent 18%,#05080b4d 48%,#080d16e8 100%)}
+    .cover-stage-info{padding:20px 21px 22px;max-width:100%;text-shadow:0 2px 10px #000b}
+    .cover-stage-tag{font-size:11px;letter-spacing:.12em;color:#d0e3ff;text-transform:uppercase;font-weight:750;margin-bottom:9px}
+    .cover-stage-title{font-size:clamp(20px,2.2vw,28px);font-weight:800;line-height:1.3;overflow-wrap:anywhere}
+    .cover-stage-artist{margin-top:7px;color:#d6e1ef;font-size:13px;overflow-wrap:anywhere}
+    .video-caption{font-size:11px;color:#9aaec9;margin:4px 0 10px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .video-frame{min-height:210px}
+    .video-frame #yt-player{min-height:210px}
+    @media(max-width:640px){.cover-stage{min-height:235px;height:270px}.cover-stage-info{padding:17px}.video-frame{min-height:210px}}
+    /* Optional sync dialog; the established player layout remains unchanged. */
+    .sync-status{display:inline-block;font-size:12px;color:#abc5e8;margin:0 0 0 4px}
+    .sync-help{font-size:12px;color:#aabbd4;line-height:1.7;margin:0 0 12px}
+    .sync-auth-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .sync-info{font-size:12px;color:#9ec6ec;line-height:1.6;white-space:pre-wrap}
+    .sync-modal{max-width:620px}.sync-modal .field{margin:11px 0}
+    .sync-modal .field input{font-size:13px}.sync-instructions{border:1px solid #40506a;border-radius:12px;padding:12px;margin:10px 0;background:#18283c}
+    @media(max-width:640px){.sync-status{font-size:10px}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="brand"><div class="brandmark" aria-hidden="true">♫</div><div><strong>SmartPlayer</strong><small>내가 정의하는 음악의 세계</small></div></div>
+      <div class="header-actions"><button class="btn ghost" id="syncBtn">☁ 동기화 <span id="syncStatus" class="sync-status">미설정</span></button><button class="btn ghost" id="exportBtn" title="모든 음악 정보·사진·가사를 JSON으로 백업">↥ 백업</button><button class="btn ghost" id="importBtn" title="백업 파일 복원">↧ 복원</button><input id="importFile" type="file" accept=".json,application/json" class="hidden"><button class="btn primary" id="addBtn">＋ 음악 등록</button></div>
+    </header>
+    <h1 class="heading">나의 음악 라이브러리</h1>
+    <p class="sub">작곡가, 장르, 무드를 자유롭게 조합하고 YouTube 영상으로 감상하세요.</p>
+    <main class="layout">
+      <section class="left" aria-label="음악 데이터베이스">
+        <div class="panel">
+          <div class="panel-head"><h2>⌕ 스마트 필터</h2><button class="btn ghost" id="clearFilters">초기화</button></div>
+          <input id="search" class="searchbar" placeholder="제목, 아티스트, 작곡가 검색" aria-label="음악 검색" />
+          <div class="filter-row"><div class="filter-label"><span>장르</span><span id="genreCount"></span></div><div class="chips" id="genreFilters"></div></div>
+          <div class="filter-row"><div class="filter-label"><span>무드</span><span id="moodCount"></span></div><div class="chips" id="moodFilters"></div></div>
+          <p class="filter-note">같은 항목의 선택지는 OR, 서로 다른 항목은 AND로 연결됩니다. 예: 클래식 + (잔잔함 또는 슬픔).</p>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2>♪ 음악 목록</h2><span class="stats" id="trackCount">0곡</span></div>
+          <div id="trackList" class="tracklist"></div>
+          <div class="list-bottom"><span id="queueStatus">재생 대기열이 비어 있습니다.</span><button id="playFiltered" class="btn">▶ 검색 결과 모두 재생</button></div>
+        </div>
+      </section>
+      <aside class="right" aria-label="음악 재생기">
+        <div class="panel">
+          <div class="panel-head"><h2>▶ YouTube 플레이어</h2><div style="display:flex;align-items:center;gap:10px"><a id="openYoutube" href="https://www.youtube.com" target="_blank" rel="noopener noreferrer" class="btn ghost hidden" style="text-decoration:none">↗ YouTube에서 보기</a><span class="stats" id="playerStatus">대기 중</span></div></div>
+          <div class="cover-stage" id="coverStage" aria-label="현재 곡 커버 사진">
+            <img id="stageCover" class="hidden" alt="현재 재생 중인 음악의 커버 사진" />
+            <div class="cover-stage-info">
+              <div class="cover-stage-tag">NOW PLAYING · COVER</div>
+              <div class="cover-stage-title" id="stageTitle">원하는 음악을 선택해 주세요</div>
+              <div class="cover-stage-artist" id="stageArtist">음악별 등록 사진이 이곳의 배경이 됩니다.</div>
+            </div>
+          </div>
+          <div class="video-caption"><span>공식 YouTube 플레이어</span><span>재생 화면은 항상 표시됩니다</span></div>
+          <div class="video-frame"><div id="yt-player"></div><div class="video-placeholder" id="videoPlaceholder"><div><span class="youtube-mark">▶</span>음악을 등록하고 선택하면<br>YouTube 영상이 여기에 나타납니다.</div></div></div>
+          <div class="now"><div id="artistPhoto" class="avatar" aria-label="아티스트 사진">♫</div><div style="min-width:0"><div id="nowTitle" class="now-title">선택한 음악 없음</div><div id="nowArtist" class="now-artist">아티스트</div></div></div>
+          <p class="little-note">YouTube 공식 임베드 재생기를 사용합니다. 영상은 화면에 표시되어야 하며 Premium의 백그라운드 재생 혜택이 이 웹앱에 그대로 적용되는 것은 아닙니다.</p>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2>≡ 가사</h2><button id="toggleLyrics" class="btn ghost" aria-expanded="true">접기</button></div>
+          <div id="lyricsPanel"><div class="lyrics lyrics-placeholder" id="lyricsBox">선택한 음악의 가사가 이곳에 표시됩니다. LRC 시간 태그도 지원합니다.</div></div>
+        </div>
+      </aside>
+    </main>
+  </div>
+  <div class="bottom-player">
+    <div class="bottom-inner">
+      <div class="bottom-song"><div id="bottomCover" class="mini-fallback">♫</div><div class="bottom-info"><div id="bottomTitle" class="bottom-title">음악을 선택해 주세요</div><div id="bottomArtist" class="bottom-artist">SmartPlayer</div></div></div>
+      <div class="transport"><div class="transport-buttons"><button class="iconbtn" id="shuffleBtn" title="랜덤 재생" aria-label="랜덤 재생">⤨</button><button class="iconbtn" id="prevBtn" title="이전 곡" aria-label="이전 곡">⏮</button><button class="iconbtn main-play" id="playBtn" title="재생 또는 일시정지" aria-label="재생 또는 일시정지">▶</button><button class="iconbtn" id="nextBtn" title="다음 곡" aria-label="다음 곡">⏭</button><button class="iconbtn" id="repeatBtn" title="반복 모드" aria-label="반복 모드">↻</button></div><div class="timeline"><span id="currentTime">0:00</span><input type="range" id="seek" min="0" max="100" value="0" aria-label="재생 위치"/><span id="duration">0:00</span></div></div>
+      <div class="volume"><span>♫ 음량</span><input type="range" id="volume" min="0" max="100" value="75" aria-label="음량"/></div>
+    </div>
+  </div>
+  <div class="overlay hidden" id="editOverlay" role="dialog" aria-modal="true" aria-labelledby="modalHeading">
+    <form class="modal" id="musicForm">
+      <div class="modal-head"><h2 id="modalHeading">새 음악 등록</h2><button type="button" id="closeModal" class="iconbtn" aria-label="닫기">✕</button></div>
+      <div class="modal-grid">
+        <div class="field wide"><label for="urlInput">YouTube 링크 *</label><input type="url" id="urlInput" placeholder="https://www.youtube.com/watch?v=..." required/><div class="help">youtube.com/watch, youtu.be, shorts, music.youtube.com 링크를 지원합니다. 재생할 수 없는 영상도 있을 수 있습니다.</div></div>
+        <div class="field"><label for="titleInput">제목 *</label><input id="titleInput" required maxlength="160" placeholder="사랑하게 될 거야"/></div>
+        <div class="field"><label for="artistInput">아티스트 *</label><input id="artistInput" required maxlength="120" placeholder="한로로"/></div>
+        <div class="field"><label for="composerInput">작곡가</label><input id="composerInput" maxlength="160" placeholder="J. S. Bach"/></div>
+        <div class="field"><label for="genreInput">장르 (쉼표로 구분)</label><input id="genreInput" placeholder="클래식, 피아노"/></div>
+        <div class="field wide"><label for="moodInput">무드 (쉼표로 구분)</label><input id="moodInput" placeholder="잔잔함, 평온함, 슬픔"/></div>
+        <div class="field"><label for="coverFile">음악 커버 사진 (선택)</label><input class="file-input" id="coverFile" type="file" accept="image/*"/><div class="help">미등록 시 YouTube 썸네일 사용. 업로드 시 자동 축소하여 브라우저에 저장.</div></div>
+        <div class="field"><label for="artistFile">아티스트 프로필 사진 (선택)</label><input class="file-input" id="artistFile" type="file" accept="image/*"/><div class="help">같은 이름의 아티스트 곡에도 사용됩니다.</div></div>
+        <div class="field wide"><label for="lyricsInput">가사 / LRC (선택)</label><textarea id="lyricsInput" rows="5" placeholder="일반 가사를 붙여넣거나 [00:12.50]가사 형태의 LRC를 입력하세요."></textarea><div class="help">가사는 직접 입력하세요. 본인이 이용 권한을 가진 콘텐츠만 저장·배포해 주세요.</div></div>
+      </div>
+      <div class="modal-footer"><button type="button" id="deleteBtn" class="btn danger hidden">삭제</button><div style="margin-left:auto;display:flex;gap:8px"><button type="button" class="btn" id="cancelBtn">취소</button><button type="submit" class="btn primary">저장하기</button></div></div>
+    </form>
+  </div>
+  <div class="overlay hidden" id="syncOverlay" role="dialog" aria-modal="true" aria-labelledby="syncHeading">
+    <div class="modal sync-modal">
+      <div class="modal-head"><h2 id="syncHeading">☁ SmartPlayer 클라우드 동기화</h2><button id="closeSync" class="iconbtn" type="button" aria-label="닫기">✕</button></div>
+      <p class="sync-help">기존 재생 기능은 그대로 사용합니다. 동기화는 선택 사항입니다. 연결 정보는 이미 입력되어 있습니다. <b>이메일과 비밀번호</b>로 개인 계정을 생성하거나 로그인하세요. 비밀키(service_role / secret)는 절대 입력하지 마세요.</p>
+      <div class="field"><label for="syncUrl">Supabase Project URL</label><input id="syncUrl" type="url" placeholder="https://xxxx.supabase.co" autocomplete="off" /></div>
+      <div class="field"><label for="syncKey">Supabase publishable key (또는 legacy anon key)</label><input id="syncKey" type="text" placeholder="sb_publishable_..." autocomplete="off" spellcheck="false" /></div>
+      <div class="sync-auth-row"><button class="btn" id="saveSyncConfig" type="button">연결 정보 저장</button><button class="btn ghost" id="forgetSyncConfig" type="button">연결 정보 지우기</button></div>
+      <div class="sync-instructions">
+        <div class="field"><label for="syncEmail">이메일 (Supabase 로그인)</label><input id="syncEmail" type="email" autocomplete="username" placeholder="my@email.com" /></div>
+        <div class="field"><label for="syncPassword">비밀번호 (8자 이상)</label><input id="syncPassword" type="password" autocomplete="current-password" placeholder="Supabase 계정 비밀번호" /></div>
+        <div class="sync-auth-row"><button class="btn primary" type="button" id="syncLogin">로그인</button><button class="btn" type="button" id="syncSignUp">처음 사용: 회원가입</button><button class="btn ghost" type="button" id="syncLogout">로그아웃</button></div>
+      </div>
+      <div id="syncInfo" class="sync-info" role="status" aria-live="polite">계정으로 로그인하면 내 음악 목록을 PC와 모바일에서 동기화할 수 있습니다.</div>
+      <div class="sync-auth-row"><button class="btn" id="syncRun" type="button">↻ 지금 동기화</button><button class="btn" id="syncBackup" type="button">↥ 먼저 백업 다운로드</button></div>
+      <p class="sync-help" style="margin-top:16px">음악 등록·수정·삭제 시 자동 동기화하고, 화면을 다시 열거나 일정 시간이 지나면 다른 기기의 변경 사항을 가져옵니다. 충돌 시 수정 시간이 최신인 데이터를 우선하며, 실수에 대비해 JSON 백업을 보관하세요.</p>
+    </div>
+  </div>
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+  (() => {
+    'use strict';
+    const STORAGE_KEY = 'smartplayer.v0.1.library';
+    const CLOUD_CONFIG_KEY = 'smartplayer.v0.3.cloud.config';
+    const CLOUD_ID_KEY = 'smartplayer.v0.3.last-user';
+    const TOMBSTONES_KEY = 'smartplayer.v0.3.tombstones';
+    const $ = (selector) => document.querySelector(selector);
+    const state = { songs:[], tombstones:[], selectedId:null, queue:[], shuffle:false, repeat:'off', query:'', genres:new Set(), moods:new Set(), editingId:null, player:null, playerReady:false, pendingPlay:false, ytApiReady:false, activeLyricIndex:-2 };
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const isImage = (src) => typeof src === 'string' && (/^data:image\/(jpeg|png|webp|gif);base64,/i.test(src) || /^https:\/\/img\.youtube\.com\//.test(src));
+    const videoCover = (id) => `https://img.youtube.com/vi/${encodeURIComponent(id)}/hqdefault.jpg`;
+    const coverFor = song => isImage(song.cover) ? song.cover : videoCover(song.youtubeId);
+    const parseTags = value => [...new Set(String(value || '').split(/[,，]/).map(s=>s.trim()).filter(Boolean))].slice(0,20);
+    const uniqueId = () => globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const activeSong = () => state.songs.find(s=>s.id===state.selectedId) || null;
+    const timeLabel = n => (!Number.isFinite(n)||n<0)?'0:00':`${Math.floor(n/60)}:${String(Math.floor(n%60)).padStart(2,'0')}`;
+    let toastTimer;
+    function toast(message){ const t=$('#toast'); t.textContent=message;t.classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('hidden'),4500); }
+    function load(){try{const d=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');if(d&&Array.isArray(d.songs)){state.songs=d.songs.filter(s=>s&&typeof s.id==='string'&&typeof s.title==='string'&&/^[A-Za-z0-9_-]{11}$/.test(s.youtubeId)).map(s=>({...s,genres:Array.isArray(s.genres)?s.genres:[],moods:Array.isArray(s.moods)?s.moods:[]}));}const ts=JSON.parse(localStorage.getItem(TOMBSTONES_KEY)||'[]');if(Array.isArray(ts))state.tombstones=ts.filter(t=>t&&typeof t.id==='string'&&Number.isFinite(t.deletedAt));}catch(e){console.warn('저장 데이터 읽기 실패',e);toast('저장된 데이터를 읽지 못했습니다. 백업을 확인해 주세요.');}}
+    function save(schedule=true){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({version:1,songs:state.songs}));localStorage.setItem(TOMBSTONES_KEY,JSON.stringify(state.tombstones));if(schedule)scheduleCloudSync();return true;}catch(e){console.error(e);toast('저장 공간이 부족할 수 있습니다. 사진을 줄이거나 백업해 주세요.');return false;}}
+    function parseYoutubeId(raw){try{const u=new URL(raw.trim()); const host=u.hostname.toLowerCase();let id=''; if(host==='youtu.be'||host==='www.youtu.be')id=u.pathname.split('/')[1];else if(['youtube.com','www.youtube.com','m.youtube.com','music.youtube.com','youtube-nocookie.com','www.youtube-nocookie.com'].includes(host)){if(u.pathname==='/watch')id=u.searchParams.get('v');else if(/^\/(embed|shorts|live)\//.test(u.pathname))id=u.pathname.split('/')[2];}return /^[A-Za-z0-9_-]{11}$/.test(id||'')?id:null;}catch{return null;}}
+    function visibleSongs(){const q=state.query.trim().toLocaleLowerCase('ko');return state.songs.filter(s=>(!q||[s.title,s.artist,s.composer,...s.genres,...s.moods].some(v=>String(v||'').toLocaleLowerCase('ko').includes(q)))&&(!state.genres.size||s.genres.some(g=>state.genres.has(g)))&&(!state.moods.size||s.moods.some(m=>state.moods.has(m))));}
+    function renderFilters(){const genres=[...new Set(state.songs.flatMap(s=>s.genres))].sort((a,b)=>a.localeCompare(b,'ko'));const moods=[...new Set(state.songs.flatMap(s=>s.moods))].sort((a,b)=>a.localeCompare(b,'ko'));function chips(list,set,kind){return list.length?list.map(t=>`<button type="button" class="chip" data-filter="${kind}" data-value="${escapeHtml(t)}" aria-pressed="${set.has(t)}">${escapeHtml(t)}</button>`).join(''):'<span class="stats">등록된 태그가 없습니다.</span>';}$('#genreFilters').innerHTML=chips(genres,state.genres,'genre');$('#moodFilters').innerHTML=chips(moods,state.moods,'mood');$('#genreCount').textContent=state.genres.size?`${state.genres.size}개 선택`:'';$('#moodCount').textContent=state.moods.size?`${state.moods.size}개 선택`:'';}
+    function renderList(){const list=visibleSongs();$('#trackCount').textContent=`${list.length}곡 / 전체 ${state.songs.length}곡`;$('#playFiltered').disabled=!list.length;$('#trackList').innerHTML=list.length?list.map(s=>`<div class="track ${s.id===state.selectedId?'current':''}" data-song="${escapeHtml(s.id)}"><button type="button" class="track-main" data-action="play" data-id="${escapeHtml(s.id)}" title="재생"><img class="cover" src="${escapeHtml(coverFor(s))}" alt="${escapeHtml(s.title)} 커버" loading="lazy"/><div class="track-desc"><div class="track-name">${escapeHtml(s.title)}</div><div class="track-artist">${escapeHtml(s.artist)}${s.composer?' · '+escapeHtml(s.composer):''}</div><div class="tags">${escapeHtml([...s.genres,...s.moods].join(' · ')||'태그 없음')}</div></div></button><div class="track-tools"><button type="button" class="iconbtn" data-action="edit" data-id="${escapeHtml(s.id)}" title="정보 수정" aria-label="${escapeHtml(s.title)} 수정">✎</button></div></div>`).join(''):`<div class="empty"><span class="big">♫</span>${state.songs.length?'필터에 맞는 음악이 없습니다.':'오른쪽 위의 <b>＋ 음악 등록</b>을 눌러<br>첫 번째 YouTube 음악을 추가해 보세요.'}</div>`;$('#queueStatus').textContent=state.queue.length?`재생 대기열 ${state.queue.length}곡`:'재생 대기열이 비어 있습니다.';}
+    function renderNow(){const s=activeSong();const open=$('#openYoutube');open.classList.toggle('hidden',!s);if(s)open.href=`https://www.youtube.com/watch?v=${encodeURIComponent(s.youtubeId)}`;const stageCover=$('#stageCover');stageCover.classList.toggle('hidden',!s);if(s){stageCover.src=coverFor(s);stageCover.onerror=()=>{stageCover.classList.add('hidden');};}else{stageCover.removeAttribute('src');}$('#stageTitle').textContent=s?.title||'원하는 음악을 선택해 주세요';$('#stageArtist').textContent=s?.artist||'음악별 등록 사진이 이곳의 배경이 됩니다.';$('#nowTitle').textContent=s?.title||'선택한 음악 없음';$('#nowArtist').textContent=s?.artist||'아티스트';$('#bottomTitle').textContent=s?.title||'음악을 선택해 주세요';$('#bottomArtist').textContent=s?.artist||'SmartPlayer';const photo=$('#artistPhoto');const p=s&&(isImage(s.artistPhoto)?s.artistPhoto:(state.songs.find(t=>t.artist===s.artist&&isImage(t.artistPhoto))||{}).artistPhoto);photo.replaceChildren();if(isImage(p)){const img=document.createElement('img');img.src=p;img.alt=`${s.artist} 사진`;img.style.cssText='width:100%;height:100%;border-radius:50%;object-fit:cover';photo.append(img);}else photo.textContent='♫';const cover=$('#bottomCover');const img=s&&document.createElement('img');if(s){img.src=coverFor(s);img.alt='음악 커버';cover.replaceWith(img);img.id='bottomCover';}else{const div=document.createElement('div');div.id='bottomCover';div.className='mini-fallback';div.textContent='♫';cover.replaceWith(div);}}
+    function parseLrc(raw){const lines=String(raw||'').split(/\r?\n/);let out=[];for(const line of lines){const times=[...line.matchAll(/\[(\d{1,3}):(\d{2})(?:\.(\d{1,3}))?\]/g)];if(!times.length)continue;const lyric=line.replace(/\[\d{1,3}:\d{2}(?:\.\d{1,3})?\]/g,'').trim();for(const match of times){const frac=match[3]?Number(`0.${match[3]}`):0;out.push({time:Number(match[1])*60+Number(match[2])+frac,text:lyric||'♪'});}}return out.sort((a,b)=>a.time-b.time);}
+    function renderLyrics(force=false){const s=activeSong();const box=$('#lyricsBox');if(!s?.lyrics?.trim()){box.className='lyrics lyrics-placeholder';box.textContent='등록된 가사가 없습니다. ✎ 수정에서 일반 가사 또는 LRC 가사를 입력해 보세요.';state.activeLyricIndex=-2;return;}const lrc=parseLrc(s.lyrics);if(lrc.length){const tm=state.playerReady&&state.player?.getCurrentTime?state.player.getCurrentTime():0;let i=-1;for(let j=0;j<lrc.length;j++){if(tm>=lrc[j].time)i=j;else break;}if(!force&&i===state.activeLyricIndex)return;state.activeLyricIndex=i;box.className='lyrics';box.innerHTML=lrc.map((line,j)=>`<div class="lyric-line ${j===i?'active':''}" data-lyric="${j}">${escapeHtml(line.text)}</div>`).join('');const act=box.querySelector('.lyric-line.active');if(act)box.scrollTop=Math.max(0,act.offsetTop-box.offsetTop-box.clientHeight/2);}else{if(force||state.activeLyricIndex!==-3){box.className='lyrics';box.textContent=s.lyrics;state.activeLyricIndex=-3;}}}
+    function renderAll(){renderFilters();renderList();renderNow();renderLyrics(true);renderModes();}
+    function renderModes(){const b=$('#shuffleBtn');b.classList.toggle('active',state.shuffle);b.setAttribute('aria-pressed',String(state.shuffle));$('#repeatBtn').classList.toggle('active',state.repeat!=='off');$('#repeatBtn').textContent=state.repeat==='one'?'↻₁':'↻';$('#repeatBtn').title=`반복 모드: ${state.repeat==='one'?'한 곡':state.repeat==='all'?'전체':'끄기'}`;}
+    function playerStatus(t){$('#playerStatus').textContent=t;}
+    function ensurePlayer(videoId,play){if(location.protocol==='file:'){playerStatus('로컬 파일 직접 실행');toast('파일을 직접 열면 YouTube 오류 153이 발생할 수 있습니다. HTTPS 배포 주소에서 실행해 주세요.');return;}state.pendingPlay=play;if(!state.ytApiReady){playerStatus('YouTube API 로딩 중');return;}if(!state.player){$('#videoPlaceholder').classList.add('hidden');playerStatus('플레이어 준비 중');state.player=new YT.Player('yt-player',{width:'100%',height:'100%',videoId,playerVars:{controls:1,playsinline:1,rel:0,autoplay:0,origin:location.origin},events:{onReady:e=>{state.playerReady=true;e.target.setVolume(Number($('#volume').value));const song=activeSong();if(song){if(state.pendingPlay)e.target.loadVideoById(song.youtubeId);else e.target.cueVideoById(song.youtubeId);}playerStatus('준비 완료');},onStateChange:e=>{const st=e.data;$('#playBtn').textContent=st===YT.PlayerState.PLAYING?'⏸':'▶';if(st===YT.PlayerState.ENDED)nextTrack(true);if(st===YT.PlayerState.PLAYING)playerStatus('재생 중');if(st===YT.PlayerState.PAUSED)playerStatus('일시정지');},onError:e=>{if(e.data===153){playerStatus('출처 식별 오류 153');toast('YouTube 오류 153: 웹페이지 출처(Referer)가 전달되지 않았습니다. HTTPS 배포 주소에서 열었는지 확인하세요. 해결되지 않으면 브라우저 차단 설정을 확인하세요.');}else if(e.data===101||e.data===150){playerStatus('임베드 제한');toast(`영상 소유자가 외부 재생을 허용하지 않았습니다. (오류 ${e.data}) YouTube에서 보기를 이용하세요.`);}else{playerStatus('재생 실패');toast(`YouTube 재생 오류 ${e.data}. YouTube에서 보기로 원본 영상을 확인해 주세요.`);}}}});}else if(state.playerReady){try{if(play)state.player.loadVideoById(videoId);else state.player.cueVideoById(videoId);}catch(e){console.error(e);toast('곡 전환에 실패했습니다.');}}}
+    function selectSong(id,play=true,resetQueue=true){const s=state.songs.find(s=>s.id===id);if(!s)return;if(resetQueue)state.queue=visibleSongs().map(t=>t.id);if(!state.queue.includes(id))state.queue.unshift(id);state.selectedId=id;state.activeLyricIndex=-2;renderList();renderNow();renderLyrics(true);ensurePlayer(s.youtubeId,play);}
+    function nextTrack(ended=false,previous=false){if(!state.queue.length)return;if(ended&&state.repeat==='one'){try{state.player.seekTo(0,true);state.player.playVideo();}catch{}return;}let ix=state.queue.indexOf(state.selectedId);if(ix<0)ix=0;let target;if(state.shuffle&&state.queue.length>1){const candidates=state.queue.filter(id=>id!==state.selectedId);target=candidates[Math.floor(Math.random()*candidates.length)];}else{let idx=ix+(previous?-1:1);if(idx<0||idx>=state.queue.length){if(state.repeat==='all'||!ended)idx=(idx+state.queue.length)%state.queue.length;else{playerStatus('재생 종료');$('#playBtn').textContent='▶';return;}}target=state.queue[idx];}selectSong(target,true,false);}
+    function togglePlay(){const s=activeSong();if(!s){const first=visibleSongs()[0];if(first){selectSong(first.id,true);return;}toast('먼저 음악을 등록해 주세요.');return;}if(!state.playerReady){ensurePlayer(s.youtubeId,true);toast('플레이어를 준비 중입니다. 잠시 뒤 재생 버튼을 다시 눌러 주세요.');return;}try{const st=state.player.getPlayerState();if(st===YT.PlayerState.PLAYING)state.player.pauseVideo();else state.player.playVideo();}catch(e){console.error(e);toast('재생 제어에 실패했습니다.');}}
+    function updateProgress(){const p=state.player;if(!p||!state.playerReady)return;try{const t=p.getCurrentTime()||0,d=p.getDuration()||0;$('#currentTime').textContent=timeLabel(t);$('#duration').textContent=timeLabel(d);if(document.activeElement!==$('#seek'))$('#seek').value=d?String(100*t/d):'0';renderLyrics();}catch{}}
+    function modalOpen(song){state.editingId=song?.id||null;$('#modalHeading').textContent=song?'음악 정보 수정':'새 음악 등록';$('#musicForm').reset();$('#urlInput').value=song?`https://www.youtube.com/watch?v=${song.youtubeId}`:'';$('#titleInput').value=song?.title||'';$('#artistInput').value=song?.artist||'';$('#composerInput').value=song?.composer||'';$('#genreInput').value=(song?.genres||[]).join(', ');$('#moodInput').value=(song?.moods||[]).join(', ');$('#lyricsInput').value=song?.lyrics||'';$('#deleteBtn').classList.toggle('hidden',!song);$('#editOverlay').classList.remove('hidden');$('#titleInput').focus();}
+    function modalClose(){$('#editOverlay').classList.add('hidden');state.editingId=null;}
+    async function imageData(file){if(!file)return null;if(!file.type.startsWith('image/'))throw new Error('이미지 파일만 등록할 수 있습니다.');if(file.size>12*1024*1024)throw new Error('이미지는 12MB 이하로 선택해 주세요.');const img=await new Promise((resolve,reject)=>{const i=new Image();const url=URL.createObjectURL(file);i.onload=()=>{URL.revokeObjectURL(url);resolve(i);};i.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('이미지 파일을 열 수 없습니다.'));};i.src=url;});const max=550,scale=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*scale));c.height=Math.max(1,Math.round(img.height*scale));const ctx=c.getContext('2d');ctx.fillStyle='#1c2432';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(img,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.75);}
+    async function submitSong(e){e.preventDefault();const id=parseYoutubeId($('#urlInput').value);if(!id){toast('올바른 YouTube 영상 링크를 입력해 주세요.');return;}const title=$('#titleInput').value.trim(),artist=$('#artistInput').value.trim();if(!title||!artist){toast('제목과 아티스트는 필수입니다.');return;}const old=state.songs.find(s=>s.id===state.editingId);const submitButton=$('#musicForm button[type=submit]');submitButton.disabled=true;try{const [cover,artistPhoto]=await Promise.all([imageData($('#coverFile').files[0]),imageData($('#artistFile').files[0])]);const song={id:old?.id||uniqueId(),youtubeId:id,title,artist,composer:$('#composerInput').value.trim(),genres:parseTags($('#genreInput').value),moods:parseTags($('#moodInput').value),cover:cover||old?.cover||'',artistPhoto:artistPhoto||old?.artistPhoto||'',lyrics:$('#lyricsInput').value,addedAt:old?.addedAt||Date.now(),updatedAt:Date.now()};if(old){state.songs[state.songs.findIndex(s=>s.id===old.id)]=song;}else state.songs.unshift(song);state.tombstones=state.tombstones.filter(t=>t.id!==song.id);save();modalClose();renderAll();if(state.selectedId===song.id){ensurePlayer(song.youtubeId,false);}toast(old?'음악 정보가 수정되었습니다.':'음악을 등록했습니다. 목록에서 눌러 재생하세요.');}catch(err){toast(err.message||'저장 중 오류가 발생했습니다.');}finally{submitButton.disabled=false;}}
+    function deleteSong(){const id=state.editingId;if(!id)return;const s=state.songs.find(s=>s.id===id);if(!confirm(`“${s?.title||'이 음악'}”을(를) 삭제할까요?`))return;state.songs=state.songs.filter(s=>s.id!==id);state.tombstones=state.tombstones.filter(t=>t.id!==id);state.tombstones.push({id,deletedAt:Date.now()});state.queue=state.queue.filter(i=>i!==id);if(state.selectedId===id){try{state.player?.stopVideo();}catch{}state.selectedId=null;$('#playBtn').textContent='▶';}save();modalClose();renderAll();toast('음악을 삭제했습니다.');}
+    function backup(){const blob=new Blob([JSON.stringify({format:'SmartPlayer',version:1,exportedAt:new Date().toISOString(),songs:state.songs},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`SmartPlayer_backup_${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+    async function restore(file){if(!file)return;try{const data=JSON.parse(await file.text());if(!data||data.format!=='SmartPlayer'||!Array.isArray(data.songs))throw new Error('SmartPlayer 백업 파일이 아닙니다.');if(!confirm(`백업의 음악 ${data.songs.length}곡으로 현재 ${state.songs.length}곡을 교체할까요?`))return;const songs=data.songs.filter(s=>s&&typeof s.id==='string'&&typeof s.title==='string'&&typeof s.artist==='string'&&/^[A-Za-z0-9_-]{11}$/.test(s.youtubeId)).map(s=>({...s,genres:Array.isArray(s.genres)?s.genres:[],moods:Array.isArray(s.moods)?s.moods:[],cover:isImage(s.cover)?s.cover:'',artistPhoto:isImage(s.artistPhoto)?s.artistPhoto:''}));const previous=state.songs;state.songs=songs;state.tombstones=[];state.songs=state.songs.map(s=>({...s,updatedAt:Date.now()}));if(!save()){state.songs=previous;return;}state.selectedId=null;state.queue=[];state.genres.clear();state.moods.clear();try{state.player?.stopVideo();}catch{}renderAll();toast(`${songs.length}곡을 복원했습니다.`);}catch(e){toast(e.message||'백업을 읽을 수 없습니다.');}}
+
+    // ----- OPTIONAL SUPABASE CLOUD SYNC (v0.3 preview) -----
+    let cloudClient=null, cloudUser=null, cloudEnabled=false, cloudBusy=false, cloudTimer=null;
+    let cloudChanges=0, cloudLastSynced='', cloudPollTime=0;
+    // Public Supabase project identifier + publishable key (safe to expose in client apps).
+    // RLS protects user data; no secret/service_role key is included.
+    const DEFAULT_CLOUD_CONFIG = {url:"https://argqtzatzkirhartmiqn.supabase.co",key:"sb_publishable_dCAiLEV4qRF4BT6BjNXKRw_aGdzbrn8"};
+    const syncConfig=()=>{try{return JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY)||'null')||DEFAULT_CLOUD_CONFIG}catch{return DEFAULT_CLOUD_CONFIG}};
+    const syncMessage=(msg)=>{$('#syncInfo').textContent=msg;};
+    function syncStatus(msg){$('#syncStatus').textContent=msg;}
+    function openSync(){$('#syncOverlay').classList.remove('hidden');const c=syncConfig();if(c){$('#syncUrl').value=c.url||'';$('#syncKey').value=c.key||'';}if(cloudUser){syncMessage(`로그인됨: ${cloudUser.email||cloudUser.id}\n${cloudLastSynced?`최근 동기화: ${cloudLastSynced}`:'동기화 대기 중'}`);}$('#syncEmail').focus();}
+    function closeSync(){$('#syncOverlay').classList.add('hidden');}
+    function validCloudConfig(url,key){const u=new URL(url);if(u.protocol!=='https:'||!u.hostname.endsWith('.supabase.co'))throw Error('Supabase 프로젝트의 https://...supabase.co 주소를 입력하세요.');if(!/^(sb_publishable_[\w-]+|eyJ[\w.-]+)$/.test(key))throw Error('publishable 키 또는 anon 키를 확인하세요. secret/service_role 키는 사용할 수 없습니다.');return {url:u.origin,key};}
+    async function makeCloudClient(){const c=syncConfig();if(!c)throw Error('클라우드 설정이 없습니다.');if(!window.supabase?.createClient)throw Error('Supabase 라이브러리를 불러오지 못했습니다. 인터넷 연결이나 콘텐츠 차단 설정을 확인하세요.');cloudClient=window.supabase.createClient(c.url,c.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});return cloudClient;}
+    function normalizeSnapshot(x){const songs=(Array.isArray(x?.songs)?x.songs:[]).filter(s=>s&&typeof s.id==='string'&&/^[\w-]{11}$/.test(s.youtubeId||'')&&typeof s.title==='string').map(s=>({...s,genres:Array.isArray(s.genres)?s.genres:[],moods:Array.isArray(s.moods)?s.moods:[]}));const tombstones=(Array.isArray(x?.tombstones)?x.tombstones:[]).filter(t=>typeof t?.id==='string'&&Number.isFinite(t.deletedAt));return {songs,tombstones};}
+    function localSnapshot(){return {songs:state.songs.map(s=>({...s,updatedAt:Number(s.updatedAt)||Number(s.addedAt)||0})),tombstones:state.tombstones.slice()};}
+    function mergeSnapshots(local,remote){const values=new Map();function accept(key,kind,ts,data,priority){const old=values.get(key);if(!old||ts>old.ts||(ts===old.ts&&priority>old.priority))values.set(key,{kind,ts,data,priority});}
+      for(const s of local.songs)accept(s.id,'song',Number(s.updatedAt)||Number(s.addedAt)||0,s,0);
+      for(const s of remote.songs)accept(s.id,'song',Number(s.updatedAt)||Number(s.addedAt)||0,s,1);
+      for(const t of local.tombstones)accept(t.id,'delete',t.deletedAt,t,2);
+      for(const t of remote.tombstones)accept(t.id,'delete',t.deletedAt,t,3);
+      return {songs:[...values.values()].filter(x=>x.kind==='song').map(x=>x.data).sort((a,b)=>(b.addedAt||0)-(a.addedAt||0)),tombstones:[...values.values()].filter(x=>x.kind==='delete').map(x=>x.data)};
+    }
+    function snapshotSignature(v){const ns=normalizeSnapshot(v);return JSON.stringify({songs:[...ns.songs].sort((a,b)=>a.id.localeCompare(b.id)),tombstones:[...ns.tombstones].sort((a,b)=>a.id.localeCompare(b.id))});}
+    function applyCloudSnapshot(snap){const normalized=normalizeSnapshot(snap);state.songs=normalized.songs;state.tombstones=normalized.tombstones;if(state.selectedId&&!state.songs.some(x=>x.id===state.selectedId)){state.selectedId=null;state.queue=[];try{state.player?.stopVideo();}catch{}}state.queue=state.queue.filter(id=>state.songs.some(s=>s.id===id));save(false);renderAll();}
+    async function initCloudSession(){if(!cloudClient)await makeCloudClient();const {data,error}=await cloudClient.auth.getUser();if(error||!data.user)return false;cloudUser=data.user;syncStatus('연결 중');return true;}
+    function scheduleCloudSync(){cloudChanges++;if(!cloudEnabled||!cloudUser)return;clearTimeout(cloudTimer);syncStatus('저장 중…');cloudTimer=setTimeout(()=>performCloudSync(false),900);}
+    async function performCloudSync(first=false){if(cloudBusy||!cloudClient||!cloudUser)return;cloudBusy=true;syncStatus('동기화 중');try{
+      // Before connecting the library to a different account, require explicit consent.
+      if(first){const previous=localStorage.getItem(CLOUD_ID_KEY);if(previous&&previous!==cloudUser.id&&!confirm('이 기기의 음악을 다른 로그인 계정의 클라우드와 합치시겠습니까? 취소하면 현재 음악은 그대로 유지됩니다.')){cloudEnabled=false;syncStatus('연결 보류');return;}}
+      for(let attempt=0;attempt<5;attempt++){
+        const startedAt=cloudChanges;
+        const {data:row,error:readErr}=await cloudClient.from('smartplayer_libraries').select('songs,revision').eq('user_id',cloudUser.id).maybeSingle();
+        if(readErr)throw readErr;
+        const remote=normalizeSnapshot(row?.songs||{songs:[],tombstones:[]});
+        if(first&&!cloudEnabled&&state.songs.length&&localStorage.getItem(CLOUD_ID_KEY)!==cloudUser.id){const question=row?'현재 기기에 저장된 음악과 클라우드 음악을 합치시겠습니까? (같은 곡 ID가 충돌하면 최근 수정 내용을 우선합니다.)':'현재 기기의 음악을 클라우드에 처음 업로드하시겠습니까?';if(!confirm(question)){syncStatus('동기화 보류');syncMessage('기존 음악은 변경되지 않았습니다. 동기화를 원하면 다시 로그인하거나 「지금 동기화」를 누르세요.');return;}}
+        const local=localSnapshot(),merged=mergeSnapshots(local,remote);
+        if(snapshotSignature(merged)!==snapshotSignature(remote)){
+          const update=row ? await cloudClient.from('smartplayer_libraries').update({songs:merged,revision:row.revision+1,updated_at:new Date().toISOString()}).eq('user_id',cloudUser.id).eq('revision',row.revision).select('revision').maybeSingle()
+            : await cloudClient.from('smartplayer_libraries').insert({user_id:cloudUser.id,songs:merged,revision:1}).select('revision').maybeSingle();
+          if(update.error){if(update.error.code==='23505')continue;throw update.error;}
+          if(!update.data)continue; // Another device wrote first, retry with newest revision.
+        }
+        if(startedAt!==cloudChanges)continue; // Local edit happened during a network request.
+        if(snapshotSignature(local)!==snapshotSignature(merged))applyCloudSnapshot(merged);
+        cloudEnabled=true;localStorage.setItem(CLOUD_ID_KEY,cloudUser.id);cloudLastSynced=new Date().toLocaleTimeString('ko-KR');syncStatus('동기화됨');syncMessage(`로그인: ${cloudUser.email||cloudUser.id}\n최근 동기화: ${cloudLastSynced}\n음악 ${state.songs.length}곡 · PC/모바일 공유 중`);return;
+      }
+      throw Error('두 기기에서 동시에 변경하여 충돌했습니다. 잠시 후 다시 동기화해 주세요.');
+    }catch(e){console.error('cloud sync failed',e);syncStatus('동기화 오류');syncMessage(`동기화 오류: ${e.message||String(e)}\n로컬 음악은 그대로 보존되었습니다.`);}finally{cloudBusy=false;}}
+    async function saveCloudConfig(){try{const config=validCloudConfig($('#syncUrl').value.trim(),$('#syncKey').value.trim());localStorage.setItem(CLOUD_CONFIG_KEY,JSON.stringify(config));cloudClient=null;cloudUser=null;cloudEnabled=false;await makeCloudClient();syncStatus('설정 완료');syncMessage('연결 정보가 저장되었습니다. 이메일과 비밀번호로 로그인하세요.');}catch(e){syncMessage(`설정 오류: ${e.message}`);}}
+    async function cloudAuth(signUp){try{if(!cloudClient)await makeCloudClient();const email=$('#syncEmail').value.trim(),password=$('#syncPassword').value;if(!email||password.length<8)throw Error('이메일과 8자 이상의 비밀번호를 입력하세요.');syncStatus('인증 중');const {data,error}=signUp?await cloudClient.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}}):await cloudClient.auth.signInWithPassword({email,password});$('#syncPassword').value='';if(error)throw error;if(!data.session){syncStatus('이메일 확인 필요');syncMessage('회원가입 확인 이메일이 발송되었을 수 있습니다. 메일에서 계정을 확인한 뒤 다시 로그인해 주세요.');return;}cloudUser=data.user;cloudEnabled=false;await performCloudSync(true);}catch(e){syncStatus('인증 실패');syncMessage(`로그인 실패: ${e.message}`);}}
+    async function cloudLogout(){try{await cloudClient?.auth.signOut();cloudUser=null;cloudEnabled=false;syncStatus('로그아웃');syncMessage('로그아웃했습니다. 브라우저에 저장된 음악은 그대로 있습니다.');}catch(e){syncMessage(e.message);}}
+    $('#syncBtn').addEventListener('click',openSync);$('#closeSync').addEventListener('click',closeSync);$('#syncOverlay').addEventListener('click',e=>{if(e.target===$('#syncOverlay'))closeSync();});$('#saveSyncConfig').addEventListener('click',saveCloudConfig);
+    $('#forgetSyncConfig').addEventListener('click',async()=>{if(!confirm('클라우드 연결 정보를 이 브라우저에서 지울까요? 음악 데이터는 삭제되지 않습니다.'))return;await cloudLogout();localStorage.removeItem(CLOUD_CONFIG_KEY);localStorage.removeItem(CLOUD_ID_KEY);cloudClient=null;$('#syncUrl').value='';$('#syncKey').value='';syncStatus('미설정');});
+    $('#syncLogin').addEventListener('click',()=>cloudAuth(false));$('#syncSignUp').addEventListener('click',()=>cloudAuth(true));$('#syncLogout').addEventListener('click',cloudLogout);$('#syncRun').addEventListener('click',async()=>{if(!cloudUser){if(!await initCloudSession()){syncMessage('먼저 로그인해 주세요.');return;}}await performCloudSync(!cloudEnabled);});$('#syncBackup').addEventListener('click',backup);
+    if(syncConfig()){
+      $('#syncUrl').value=syncConfig().url;$('#syncKey').value=syncConfig().key;
+      setTimeout(async()=>{try{if(await initCloudSession())await performCloudSync(true);else syncStatus('로그인 필요');}catch(e){syncStatus('설정 확인');console.warn(e);}},300);
+    }
+    setInterval(()=>{if(cloudEnabled&&cloudUser&&!cloudBusy&&document.visibilityState==='visible')performCloudSync(false);},30000);
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&cloudEnabled)performCloudSync(false);});
+    window.addEventListener('online',()=>{if(cloudEnabled)performCloudSync(false);});
+    // ----- END CLOUD SYNC -----
+    $('#addBtn').addEventListener('click',()=>modalOpen(null));$('#closeModal').addEventListener('click',modalClose);$('#cancelBtn').addEventListener('click',modalClose);$('#editOverlay').addEventListener('click',e=>{if(e.target===$('#editOverlay'))modalClose();});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#editOverlay').classList.contains('hidden'))modalClose();});$('#musicForm').addEventListener('submit',submitSong);$('#deleteBtn').addEventListener('click',deleteSong);
+    $('#search').addEventListener('input',e=>{state.query=e.target.value;renderList();});$('#clearFilters').addEventListener('click',()=>{state.query='';state.genres.clear();state.moods.clear();$('#search').value='';renderFilters();renderList();});
+    document.addEventListener('click',e=>{const chip=e.target.closest('[data-filter]');if(!chip)return;const set=chip.dataset.filter==='genre'?state.genres:state.moods;const value=chip.dataset.value;set.has(value)?set.delete(value):set.add(value);renderFilters();renderList();});
+    $('#trackList').addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const s=state.songs.find(x=>x.id===b.dataset.id);if(!s)return;if(b.dataset.action==='edit')modalOpen(s);else selectSong(s.id,true);});
+    $('#playFiltered').addEventListener('click',()=>{const songs=visibleSongs();if(!songs.length)return;state.queue=songs.map(s=>s.id);selectSong(songs[0].id,true,false);});$('#playBtn').addEventListener('click',togglePlay);$('#prevBtn').addEventListener('click',()=>nextTrack(false,true));$('#nextBtn').addEventListener('click',()=>nextTrack(false,false));$('#shuffleBtn').addEventListener('click',()=>{state.shuffle=!state.shuffle;renderModes();});$('#repeatBtn').addEventListener('click',()=>{state.repeat=state.repeat==='off'?'all':state.repeat==='all'?'one':'off';renderModes();});$('#seek').addEventListener('change',e=>{if(state.playerReady){try{const d=state.player.getDuration();state.player.seekTo(d*Number(e.target.value)/100,true);}catch{}}});$('#volume').addEventListener('input',e=>{try{state.player?.setVolume(Number(e.target.value));}catch{}});
+    $('#toggleLyrics').addEventListener('click',()=>{const hidden=$('#lyricsPanel').classList.toggle('hidden');$('#toggleLyrics').textContent=hidden?'펼치기':'접기';$('#toggleLyrics').setAttribute('aria-expanded',String(!hidden));});$('#exportBtn').addEventListener('click',backup);$('#importBtn').addEventListener('click',()=>$('#importFile').click());$('#importFile').addEventListener('change',e=>{restore(e.target.files[0]);e.target.value='';});
+    window.onYouTubeIframeAPIReady=()=>{state.ytApiReady=true;const s=activeSong();if(s)ensurePlayer(s.youtubeId,state.pendingPlay);else playerStatus('준비 완료');};
+    load();renderAll();setInterval(updateProgress,650);if(location.protocol==='file:'){playerStatus('로컬 파일 실행 중');toast('YouTube 재생을 위해 SmartPlayer_실행.bat를 사용해 http://127.0.0.1:8765 주소로 접속하세요.');}
+    if('serviceWorker' in navigator && location.protocol==='https:'){
+      window.addEventListener('load',()=>navigator.serviceWorker.register('./SmartPlayer_v0.4_sw.js',{scope:'./'}).catch(err=>console.warn('PWA 등록 실패',err)));
+    }
+    const script=document.createElement('script');script.src='https://www.youtube.com/iframe_api';script.async=true;script.onerror=()=>{playerStatus('YouTube API 연결 실패');toast('YouTube에 연결할 수 없습니다. 인터넷 연결 및 브라우저 차단 설정을 확인해 주세요.');};document.head.append(script);
+  })();
+  </script>
+</body>
+</html>
