@@ -53,7 +53,7 @@
   <div class="app">
     <header class="header">
       <div class="brand"><div class="brandmark" aria-hidden="true">♫</div><div><strong>SmartPlayer</strong><small>내가 정의하는 음악의 세계</small></div></div>
-      <div class="header-actions"><button class="btn ghost" id="syncBtn">☁ 동기화 <span id="syncStatus" class="sync-status">미설정</span></button><button class="btn ghost" id="exportBtn" title="모든 음악 정보·사진·가사를 JSON으로 백업">↥ 백업</button><button class="btn ghost" id="importBtn" title="백업 파일 복원">↧ 복원</button><input id="importFile" type="file" accept=".json,application/json" class="hidden"><button class="btn primary" id="addBtn">＋ 음악 등록</button></div>
+      <div class="header-actions"><button class="btn ghost" id="installAppBtn" type="button" title="앱으로 설치">⬇ 앱 설치</button><button class="btn ghost" id="syncBtn">☁ 동기화 <span id="syncStatus" class="sync-status">미설정</span></button><button class="btn ghost" id="exportBtn" title="모든 음악 정보·사진·가사를 JSON으로 백업">↥ 백업</button><button class="btn ghost" id="importBtn" title="백업 파일 복원">↧ 복원</button><input id="importFile" type="file" accept=".json,application/json" class="hidden"><button class="btn primary" id="addBtn">＋ 음악 등록</button></div>
     </header>
     <h1 class="heading">나의 음악 라이브러리</h1>
     <p class="sub">작곡가, 장르, 무드를 자유롭게 조합하고 YouTube 영상으로 감상하세요.</p>
@@ -252,6 +252,20 @@
     $('#toggleLyrics').addEventListener('click',()=>{const hidden=$('#lyricsPanel').classList.toggle('hidden');$('#toggleLyrics').textContent=hidden?'펼치기':'접기';$('#toggleLyrics').setAttribute('aria-expanded',String(!hidden));});$('#exportBtn').addEventListener('click',backup);$('#importBtn').addEventListener('click',()=>$('#importFile').click());$('#importFile').addEventListener('change',e=>{restore(e.target.files[0]);e.target.value='';});
     window.onYouTubeIframeAPIReady=()=>{state.ytApiReady=true;const s=activeSong();if(s)ensurePlayer(s.youtubeId,state.pendingPlay);else playerStatus('준비 완료');};
     load();renderAll();setInterval(updateProgress,650);if(location.protocol==='file:'){playerStatus('로컬 파일 실행 중');toast('YouTube 재생을 위해 SmartPlayer_실행.bat를 사용해 http://127.0.0.1:8765 주소로 접속하세요.');}
+    let deferredInstallPrompt=null;
+    window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstallPrompt=event;});
+    $('#installAppBtn').addEventListener('click',async()=>{
+      if(window.matchMedia('(display-mode: standalone)').matches){toast('이미 설치한 SmartPlayer 앱에서 실행 중입니다.');return;}
+      if(deferredInstallPrompt){
+        deferredInstallPrompt.prompt();
+        const choice=await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt=null;
+        if(choice?.outcome==='accepted')toast('앱 설치를 진행합니다.');
+        return;
+      }
+      toast('Chrome/Edge 메뉴(⋮)에서 「앱 설치」 또는 「홈 화면에 추가」를 선택해 주세요.');
+    });
+    window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;toast('SmartPlayer 앱이 설치되었습니다!');});
     if('serviceWorker' in navigator && location.protocol==='https:'){
       window.addEventListener('load',()=>navigator.serviceWorker.register('./SmartPlayer_v0.4_sw.js',{scope:'./'}).catch(err=>console.warn('PWA 등록 실패',err)));
     }
