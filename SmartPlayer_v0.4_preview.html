@@ -51,6 +51,11 @@
       .mini-playback-row .video-frame{width:min(100%,340px)}
       .mini-playback-details .now{margin-top:0}
     }
+    /* Sorting: compact accessible controls, independent of cloud-stored songs. */
+    .library-tools{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+    .sort-label{font-size:12px;color:var(--muted);white-space:nowrap}
+    .sort-select{max-width:190px;min-width:138px;border:1px solid #394456;background:#111824;border-radius:10px;color:var(--fg);padding:8px 10px;font-size:12px}
+    @media(max-width:540px){.library-head{align-items:flex-start;flex-direction:column}.library-tools{width:100%}.sort-select{flex:1;max-width:none}}
     /* Optional sync dialog; the established player layout remains unchanged. */
     .sync-status{display:inline-block;font-size:12px;color:#abc5e8;margin:0 0 0 4px}
     .sync-help{font-size:12px;color:#aabbd4;line-height:1.7;margin:0 0 12px}
@@ -79,7 +84,7 @@
           <p class="filter-note">같은 항목의 선택지는 OR, 서로 다른 항목은 AND로 연결됩니다. 예: 클래식 + (잔잔함 또는 슬픔).</p>
         </div>
         <div class="panel">
-          <div class="panel-head"><h2>♪ 음악 목록</h2><span class="stats" id="trackCount">0곡</span></div>
+          <div class="panel-head library-head"><h2>♪ 음악 목록</h2><div class="library-tools"><label for="sortSelect" class="sort-label">정렬</label><select id="sortSelect" class="sort-select" aria-label="음악 목록 정렬"><option value="newest">등록 최신순</option><option value="oldest">등록 오래된순</option><option value="title-asc">제목 가나다순</option><option value="title-desc">제목 역순</option><option value="artist-asc">아티스트 가나다순</option><option value="artist-desc">아티스트 역순</option><option value="composer-asc">작곡가 가나다순</option><option value="composer-desc">작곡가 역순</option></select><span class="stats" id="trackCount">0곡</span></div></div>
           <div id="trackList" class="tracklist"></div>
           <div class="list-bottom"><span id="queueStatus">재생 대기열이 비어 있습니다.</span><button id="playFiltered" class="btn">▶ 검색 결과 모두 재생</button></div>
         </div>
@@ -161,8 +166,11 @@
     const CLOUD_CONFIG_KEY = 'smartplayer.v0.3.cloud.config';
     const CLOUD_ID_KEY = 'smartplayer.v0.3.last-user';
     const TOMBSTONES_KEY = 'smartplayer.v0.3.tombstones';
+    const SORT_KEY = 'smartplayer.v0.4.sort';
+    const SORT_MODES = new Set(['newest','oldest','title-asc','title-desc','artist-asc','artist-desc','composer-asc','composer-desc']);
+    function readSortMode(){try{const value=localStorage.getItem(SORT_KEY);return SORT_MODES.has(value)?value:'newest';}catch{return 'newest';}}
     const $ = (selector) => document.querySelector(selector);
-    const state = { songs:[], tombstones:[], selectedId:null, queue:[], shuffle:false, repeat:'off', query:'', genres:new Set(), moods:new Set(), editingId:null, player:null, playerReady:false, pendingPlay:false, ytApiReady:false, activeLyricIndex:-2 };
+    const state = { songs:[], tombstones:[], selectedId:null, queue:[], shuffle:false, repeat:'off', query:'', genres:new Set(), moods:new Set(), sortMode:readSortMode(), editingId:null, player:null, playerReady:false, pendingPlay:false, ytApiReady:false, activeLyricIndex:-2 };
     const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const isImage = (src) => typeof src === 'string' && (/^data:image\/(jpeg|png|webp|gif);base64,/i.test(src) || /^https:\/\/img\.youtube\.com\//.test(src));
     const videoCover = (id) => `https://img.youtube.com/vi/${encodeURIComponent(id)}/hqdefault.jpg`;
@@ -176,7 +184,22 @@
     function load(){try{const d=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');if(d&&Array.isArray(d.songs)){state.songs=d.songs.filter(s=>s&&typeof s.id==='string'&&typeof s.title==='string'&&/^[A-Za-z0-9_-]{11}$/.test(s.youtubeId)).map(s=>({...s,genres:Array.isArray(s.genres)?s.genres:[],moods:Array.isArray(s.moods)?s.moods:[]}));}const ts=JSON.parse(localStorage.getItem(TOMBSTONES_KEY)||'[]');if(Array.isArray(ts))state.tombstones=ts.filter(t=>t&&typeof t.id==='string'&&Number.isFinite(t.deletedAt));}catch(e){console.warn('저장 데이터 읽기 실패',e);toast('저장된 데이터를 읽지 못했습니다. 백업을 확인해 주세요.');}}
     function save(schedule=true){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({version:1,songs:state.songs}));localStorage.setItem(TOMBSTONES_KEY,JSON.stringify(state.tombstones));if(schedule)scheduleCloudSync();return true;}catch(e){console.error(e);toast('저장 공간이 부족할 수 있습니다. 사진을 줄이거나 백업해 주세요.');return false;}}
     function parseYoutubeId(raw){try{const u=new URL(raw.trim()); const host=u.hostname.toLowerCase();let id=''; if(host==='youtu.be'||host==='www.youtu.be')id=u.pathname.split('/')[1];else if(['youtube.com','www.youtube.com','m.youtube.com','music.youtube.com','youtube-nocookie.com','www.youtube-nocookie.com'].includes(host)){if(u.pathname==='/watch')id=u.searchParams.get('v');else if(/^\/(embed|shorts|live)\//.test(u.pathname))id=u.pathname.split('/')[2];}return /^[A-Za-z0-9_-]{11}$/.test(id||'')?id:null;}catch{return null;}}
-    function visibleSongs(){const q=state.query.trim().toLocaleLowerCase('ko');return state.songs.filter(s=>(!q||[s.title,s.artist,s.composer,...s.genres,...s.moods].some(v=>String(v||'').toLocaleLowerCase('ko').includes(q)))&&(!state.genres.size||s.genres.some(g=>state.genres.has(g)))&&(!state.moods.size||s.moods.some(m=>state.moods.has(m))));}
+    const compareText=(a,b)=>String(a||'').localeCompare(String(b||''),'ko',{numeric:true,sensitivity:'base'});
+    function compareSongs(a,b){
+      const tie=()=>compareText(a.title,b.title)||compareText(a.artist,b.artist)||compareText(a.id,b.id);
+      if(state.sortMode==='newest')return (Number(b.addedAt)||0)-(Number(a.addedAt)||0)||tie();
+      if(state.sortMode==='oldest')return (Number(a.addedAt)||0)-(Number(b.addedAt)||0)||tie();
+      const [field,direction]=state.sortMode.split('-');
+      if(!['title','artist','composer'].includes(field))return tie();
+      // Songs without a composer always appear last, including descending order.
+      if(field==='composer'&&(!a.composer||!b.composer)){
+        if(!a.composer&&!b.composer)return tie();
+        return a.composer?-1:1;
+      }
+      const primary=direction==='desc'?compareText(b[field],a[field]):compareText(a[field],b[field]);
+      return primary||tie();
+    }
+    function visibleSongs(){const q=state.query.trim().toLocaleLowerCase('ko');return state.songs.filter(s=>(!q||[s.title,s.artist,s.composer,...s.genres,...s.moods].some(v=>String(v||'').toLocaleLowerCase('ko').includes(q)))&&(!state.genres.size||s.genres.some(g=>state.genres.has(g)))&&(!state.moods.size||s.moods.some(m=>state.moods.has(m)))).sort(compareSongs);}
     function renderFilters(){const genres=[...new Set(state.songs.flatMap(s=>s.genres))].sort((a,b)=>a.localeCompare(b,'ko'));const moods=[...new Set(state.songs.flatMap(s=>s.moods))].sort((a,b)=>a.localeCompare(b,'ko'));function chips(list,set,kind){return list.length?list.map(t=>`<button type="button" class="chip" data-filter="${kind}" data-value="${escapeHtml(t)}" aria-pressed="${set.has(t)}">${escapeHtml(t)}</button>`).join(''):'<span class="stats">등록된 태그가 없습니다.</span>';}$('#genreFilters').innerHTML=chips(genres,state.genres,'genre');$('#moodFilters').innerHTML=chips(moods,state.moods,'mood');$('#genreCount').textContent=state.genres.size?`${state.genres.size}개 선택`:'';$('#moodCount').textContent=state.moods.size?`${state.moods.size}개 선택`:'';}
     function renderList(){const list=visibleSongs();$('#trackCount').textContent=`${list.length}곡 / 전체 ${state.songs.length}곡`;$('#playFiltered').disabled=!list.length;$('#trackList').innerHTML=list.length?list.map(s=>`<div class="track ${s.id===state.selectedId?'current':''}" data-song="${escapeHtml(s.id)}"><button type="button" class="track-main" data-action="play" data-id="${escapeHtml(s.id)}" title="재생"><img class="cover" src="${escapeHtml(coverFor(s))}" alt="${escapeHtml(s.title)} 커버" loading="lazy"/><div class="track-desc"><div class="track-name">${escapeHtml(s.title)}</div><div class="track-artist">${escapeHtml(s.artist)}${s.composer?' · '+escapeHtml(s.composer):''}</div><div class="tags">${escapeHtml([...s.genres,...s.moods].join(' · ')||'태그 없음')}</div></div></button><div class="track-tools"><button type="button" class="iconbtn" data-action="edit" data-id="${escapeHtml(s.id)}" title="정보 수정" aria-label="${escapeHtml(s.title)} 수정">✎</button></div></div>`).join(''):`<div class="empty"><span class="big">♫</span>${state.songs.length?'필터에 맞는 음악이 없습니다.':'오른쪽 위의 <b>＋ 음악 등록</b>을 눌러<br>첫 번째 YouTube 음악을 추가해 보세요.'}</div>`;$('#queueStatus').textContent=state.queue.length?`재생 대기열 ${state.queue.length}곡`:'재생 대기열이 비어 있습니다.';}
     function renderNow(){const s=activeSong();const open=$('#openYoutube');open.classList.toggle('hidden',!s);if(s)open.href=`https://www.youtube.com/watch?v=${encodeURIComponent(s.youtubeId)}`;const stageCover=$('#stageCover');stageCover.classList.toggle('hidden',!s);if(s){stageCover.src=coverFor(s);stageCover.onerror=()=>{stageCover.classList.add('hidden');};}else{stageCover.removeAttribute('src');}$('#stageTitle').textContent=s?.title||'원하는 음악을 선택해 주세요';$('#stageArtist').textContent=s?.artist||'음악별 등록 사진이 이곳의 배경이 됩니다.';$('#nowTitle').textContent=s?.title||'선택한 음악 없음';$('#nowArtist').textContent=s?.artist||'아티스트';$('#bottomTitle').textContent=s?.title||'음악을 선택해 주세요';$('#bottomArtist').textContent=s?.artist||'SmartPlayer';const photo=$('#artistPhoto');const p=s&&(isImage(s.artistPhoto)?s.artistPhoto:(state.songs.find(t=>t.artist===s.artist&&isImage(t.artistPhoto))||{}).artistPhoto);photo.replaceChildren();if(isImage(p)){const img=document.createElement('img');img.src=p;img.alt=`${s.artist} 사진`;img.style.cssText='width:100%;height:100%;border-radius:50%;object-fit:cover';photo.append(img);}else photo.textContent='♫';const cover=$('#bottomCover');const img=s&&document.createElement('img');if(s){img.src=coverFor(s);img.alt='음악 커버';cover.replaceWith(img);img.id='bottomCover';}else{const div=document.createElement('div');div.id='bottomCover';div.className='mini-fallback';div.textContent='♫';cover.replaceWith(div);}}
@@ -261,6 +284,19 @@
     window.addEventListener('online',()=>{if(cloudEnabled)performCloudSync(false);});
     // ----- END CLOUD SYNC -----
     $('#addBtn').addEventListener('click',()=>modalOpen(null));$('#closeModal').addEventListener('click',modalClose);$('#cancelBtn').addEventListener('click',modalClose);$('#editOverlay').addEventListener('click',e=>{if(e.target===$('#editOverlay'))modalClose();});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#editOverlay').classList.contains('hidden'))modalClose();});$('#musicForm').addEventListener('submit',submitSong);$('#deleteBtn').addEventListener('click',deleteSong);
+    $('#sortSelect').value=state.sortMode;
+    $('#sortSelect').addEventListener('change',e=>{
+      const next=e.target.value;
+      if(!SORT_MODES.has(next))return;
+      state.sortMode=next;
+      try{localStorage.setItem(SORT_KEY,next);}catch(err){console.warn('정렬 설정 저장 실패',err);}
+      // Reorder the existing playback queue, preserving the playing song and its position.
+      if(state.queue.length){
+        const queuedIds=new Set(state.queue);
+        state.queue=state.songs.filter(song=>queuedIds.has(song.id)).sort(compareSongs).map(song=>song.id);
+      }
+      renderList();
+    });
     $('#search').addEventListener('input',e=>{state.query=e.target.value;renderList();});$('#clearFilters').addEventListener('click',()=>{state.query='';state.genres.clear();state.moods.clear();$('#search').value='';renderFilters();renderList();});
     document.addEventListener('click',e=>{const chip=e.target.closest('[data-filter]');if(!chip)return;const set=chip.dataset.filter==='genre'?state.genres:state.moods;const value=chip.dataset.value;set.has(value)?set.delete(value):set.add(value);renderFilters();renderList();});
     $('#trackList').addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const s=state.songs.find(x=>x.id===b.dataset.id);if(!s)return;if(b.dataset.action==='edit')modalOpen(s);else selectSong(s.id,true);});
